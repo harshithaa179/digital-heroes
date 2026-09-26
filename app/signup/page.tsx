@@ -50,10 +50,10 @@ export default function SignupPage() {
       return;
     }
     await supabase
-      .from("profiles")
-      .update({ charity_id: charityId, charity_percent: percent })
-      .eq("id", data.user.id);
-    router.push("/dashboard");
+  .from("profiles")
+  .update({ charity_id: charityId, charity_percent: percent })
+  .eq("id", data.user.id);
+  router.push("/dashboard");
   }
 
   const input =

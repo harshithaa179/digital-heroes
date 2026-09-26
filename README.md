@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Digital Heroes
 
-## Getting Started
+Subscription platform combining golf score tracking, a monthly prize draw and charity giving.
 
-First, run the development server:
+**Live site:** https://digital-heroes-zeta-orpin.vercel.app
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Test credentials
+| Role | Email | Password |
+|---|---|---|
+| User (active subscription) | testuser@example.com | Test@12345 |
+| Admin | admin@example.com | Admin@12345 |
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Stripe test card: 4242 4242 4242 4242, any future expiry, any CVC.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Stack
+Next.js 16 (App Router), TypeScript, Tailwind CSS, Framer Motion, Supabase (Auth, Postgres, Storage), Stripe Checkout (test mode), Vercel.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Features
+- Signup/login with charity choice and contribution % (min 10%)
+- Monthly and yearly subscriptions via Stripe
+- Score entry: Stableford 1-45, one per date, latest 5 kept (DB trigger)
+- Draw engine: random or algorithmic (weighted by score frequency), simulation before publish, jackpot rollover
+- Prize pool split 40% / 35% / 25%, split equally between winners in a tier
+- Winner proof upload, admin approve/reject, payout Pending to Paid
+- Charity directory with search/filter, featured charity on homepage
+- User dashboard and admin panel (users, scores, subscriptions, draws, charities, winners, reports)
 
-## Learn More
+## Assumptions
+- Prices are not specified in the PRD: Rs 499/month, Rs 4,999/year.
+- **Score entry is available to all registered users, regardless of subscription status.** Only active subscribers with 5 saved scores are eligible for monthly draw participation. This reflects the PRD's distinction between general platform access (§03, "Registered subscriber" capabilities like entering/editing scores) and the subscription/payment gate described separately (§04, "Non-subscribers receive restricted access to platform features"). Score tracking is treated as an engagement feature open to all signed-up users, while draw entry and prize eligibility remain gated behind an active subscription.
+- 50% of each subscription fee (yearly divided by 12) feeds the monthly prize pool.
+- Only active subscribers with all 5 scores enter a draw.
+- Matches count distinct numbers (duplicate scores count once).
+- One draw per month; a published draw cannot be re-run.
+- Only the 5-match jackpot rolls over; 4-match and 3-match do not.
+- Subscription status is confirmed after Stripe checkout via a server route; a Stripe webhook for renewals/cancellations is the next step for production. Admins can update subscription status manually in the meantime.
+- Stripe onboarding for India is invite-only, so a Stripe test-mode account was created under another country. Only test keys are used; no real payments are processed.
 
-To learn more about Next.js, take a look at the following resources:
+## Security
+- Row Level Security enabled on all tables
+- Database triggers prevent users from self-promoting to admin or editing prize/payment fields
+- Admin-only actions verified server-side
+- Secrets stored only in environment variables, never in client code
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment
+Deployed on a new Vercel account, connected to a new GitHub repository, using a new Supabase project — as required by the assignment brief.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Run locally
+Copy `.env.local` with: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SERVICE_ROLE_KEY, STRIPE_SECRET_KEY, NEXT_PUBLIC_SITE_URL
+Then run `npm install` and `npm run dev`.
